@@ -3,8 +3,10 @@ import { Markup, Telegraf } from 'telegraf';
 import dialog from './answers.js';
 import constants from './constants.js';
 
-let user;
-let userId
+let messageData;
+let openName;
+let internalName;
+let userId;
 let isUserBot;
 let lastAgreeMessageId = 2;
 let lastRefuseMessageId = 4;
@@ -14,9 +16,15 @@ const bot = new Telegraf(process.env.TICKET);
 
 bot.use(Telegraf.log());
 
-bot.on("message", onMessage);
-bot.action("agree", (ctx) => { onAction(ctx, true) });
-bot.action("refuse", (ctx) => { onAction(ctx, false) });
+bot.on("message", onMessage.bind(this));
+
+bot.action("agree", (ctx) => {
+    onAction(ctx, true)
+});
+
+bot.action("refuse", (ctx) => {
+    onAction(ctx, false)
+});
 
 async function onMessage(ctx) {
     // if (JSON.stringify(ctx?.update?.message?.from.id) === process.env.respKey) {
@@ -122,30 +130,47 @@ async function onAction(ctx, parameter) {
 }
 
 async function defineUserData(ctx) {
-    user = await getUserName(ctx);
-    userId = JSON.stringify(ctx?.update?.message?.from.id);
-    isUserBot = JSON.stringify(ctx?.update?.message?.from.is_bot);
+    messageData = await getUserName(ctx);
+    openName = messageData.openName;
+    internalName = messageData.internalId;
+    userId = (ctx?.update?.message?.from.id || ctx?.update?.callback_query?.from?.id);
+    isUserBot = ctx?.update?.message?.from?.is_bot?.toString() || ctx?.update?.callback_query?.from?.is_bot?.toString();
 
-    return "user: { " + user + " }\n" + "user id: { " + userId + " }" + "\n" + "is user bot { " + isUserBot + " }" + "\n" + " USER MESSAGE: \n ";
+    return "public name: { " + openName + " }\n" + "internal name: { " + internalName + " }\n" + "user id: { " + userId + " }" + "\n" + "is user bot { " + isUserBot + " }" + "\n" + " USER MESSAGE: \n ";
 }
 
 async function getUserName(ctx) {
-    let user = JSON.stringify(ctx?.update?.message?.from?.username) ||
-        JSON.stringify(ctx?.message?.from?.username) ||
-        JSON.stringify(ctx?.message?.chat?.username) ||
-        JSON.stringify(ctx?.update?.message?.chat?.username) ||
-        JSON.stringify(ctx?.update?.message?.sender_chat?.username) ||
-        JSON.stringify(ctx.username);
-    if (!user) {
-        user = JSON.stringify(ctx?.update?.message?.from?.first_name) + " " + JSON.stringify(ctx?.update?.message?.from?.last_name) ||
-            JSON.stringify(ctx?.message?.from?.first_name) + " " + JSON.stringify(ctx?.message?.from?.last_name) ||
-            JSON.stringify(ctx?.message?.chat?.first_name) + " " + JSON.stringify(ctx?.message?.chat?.last_name) ||
-            JSON.stringify(ctx?.update?.message?.chat?.first_name) + " " + JSON.stringify(ctx?.update?.message?.chat?.last_name) ||
-            JSON.stringify(ctx?.update?.message?.sender_chat?.first_name) + " " + JSON.stringify(ctx?.update?.message?.sender_chat?.last_name) ||
-            JSON.stringify(ctx.first_name) + " " + JSON.stringify(ctx.last_name);
-    }
+    let username = ctx?.update?.message?.from?.username ||
+        ctx?.message?.from?.username ||
+        ctx?.message?.chat?.username ||
+        ctx?.update?.message?.chat?.username ||
+        ctx?.update?.message?.sender_chat?.username ||
+        ctx?.update?.callback_query?.from?.username ||
+        ctx.username ||
+        "закритий акаунт";
 
-    return user;
+    let user_account_data = (ctx) => {
+        let firstName = ctx?.update?.message?.from?.first_name ||
+            ctx?.update?.callback_query?.from?.first_name ||
+            ctx?.message?.from?.first_name ||
+            ctx?.message?.chat?.first_name ||
+            ctx?.update?.message?.chat?.first_name ||
+            ctx?.update?.message?.sender_chat?.first_name ||
+            ctx?.first_name
+
+        let lastName = ctx?.update?.message?.from?.last_name ||
+            ctx?.update?.callback_query?.from?.last_name ||
+            ctx?.message?.from?.last_name ||
+            ctx?.message?.chat?.last_name ||
+            ctx?.update?.message?.chat?.last_name ||
+            ctx?.update?.message?.sender_chat?.last_name ||
+            ctx?.last_name
+
+        return firstName + " " + lastName;
+    };
+
+
+    return { openName: "ім'я користувача: " + username, internalId: "внутрішні ідентифікатори: " + user_account_data(ctx) };
 }
 
 bot.launch();
