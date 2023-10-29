@@ -1,0 +1,16 @@
+{
+  "author": "",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon destiny_index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "git": "^0.1.5",
+    "pm2": "^5.2.0",
+    "telegraf": "^4.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  }
+}
