@@ -107,26 +107,17 @@ async function setButtons(ctx) {
     ]));
 }
 
-// async function setButtonShareContact(ctx) {
-//     if (!USER_HAD_SHARE_CONTACT) {
-//         const keyboard = Markup.keyboard([
-//             Markup.button.contactRequest(dialog.shareContact),
-//         ]).resize();
-//         return await ctx.replyWithHTML(dialog.callbackContact, keyboard);
-//     }
-
-//     return
-// };
-
 async function onAction(ctx, parameter) {
     const MESSAGE_PATTERN = await defineUserData(ctx);
     await ctx.telegram.sendMessage(
         process.env.postBox,
-        MESSAGE_PATTERN,
+        MESSAGE_PATTERN + (parameter ? "AGREE" : "REJECT"),
         {
             message_thread_id: parameter ? lastAgreeMessageId : lastRefuseMessageId
         }
     );
+
+    ctx.reply(dialog.response);
 }
 
 async function defineUserData(ctx) {
