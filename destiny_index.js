@@ -61,15 +61,15 @@ async function onPollAnswer(ctx) {
             message_thread_id: answersToChatIds[ctx.update.poll_answer.option_ids[0]],
         }
     );
-    await ctx.telegram.sendMessage(ctx.update.poll_answer.user.id, dialog.response);
+    await ctx.telegram.sendMessage(ctx?.update?.poll_answer?.user?.id, dialog.response);
 }
 
 async function defineUserData(ctx) {
     messageData = await getUserName(ctx);
     openName = messageData.openName;
     internalName = messageData.internalId;
-    userId = (ctx?.update?.message?.from.id || ctx?.update?.callback_query?.from?.id || ctx.update.poll_answer.user.id);
-    isUserBot = (ctx?.update?.message?.from?.is_bot?.toString() || ctx?.update?.callback_query?.from?.is_bot?.toString() || ctx.update.poll_answer.user.is_bot?.toString());
+    userId = (ctx?.update?.message?.from.id || ctx?.update?.callback_query?.from?.id || ctx?.update?.poll_answer?.user.id);
+    isUserBot = (ctx?.update?.message?.from?.is_bot?.toString() || ctx?.update?.callback_query?.from?.is_bot?.toString() || ctx.update?.poll_answer?.user?.is_bot?.toString());
 
     return "public name:  " + openName + " \n" + "internal name:  " + internalName + " \n" + "user id:  " + userId + " " + "\n" + "is user bot  " + isUserBot + " " + "\n" + "\n ";
 }
@@ -81,8 +81,8 @@ async function getUserName(ctx) {
         ctx?.update?.message?.chat?.username ||
         ctx?.update?.message?.sender_chat?.username ||
         ctx?.update?.callback_query?.from?.username ||
-        ctx.username ||
-        ctx.update.poll_answer.user.username ||
+        ctx?.username ||
+        ctx?.update?.poll_answer?.user?.username ||
 
         "закритий акаунт";
 
@@ -94,7 +94,7 @@ async function getUserName(ctx) {
             ctx?.update?.message?.chat?.first_name ||
             ctx?.update?.message?.sender_chat?.first_name ||
             ctx?.first_name ||
-            ctx.update.poll_answer.user.first_name;
+            ctx.update?.poll_answer?.user?.first_name;
 
         let lastName = ctx?.update?.message?.from?.last_name ||
             ctx?.update?.callback_query?.from?.last_name ||
@@ -103,7 +103,7 @@ async function getUserName(ctx) {
             ctx?.update?.message?.chat?.last_name ||
             ctx?.update?.message?.sender_chat?.last_name ||
             ctx?.last_name ||
-            ctx.update.poll_answer.user.last_name
+            ctx.update?.poll_answer?.user?.last_name
 
         return firstName + " " + lastName;
     };
