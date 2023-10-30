@@ -8,9 +8,10 @@ let openName;
 let internalName;
 let userId;
 let isUserBot;
-let lastAgreeMessageId = 2;
-let lastRefuseMessageId = 4;
-let lastStartButtonMessageId = 6;
+const lastAgreeMessageId = 2;
+const lastRefuseMessageId = 4;
+const lastIgnoreMessageId = 0;
+const lastStartButtonMessageId = 6;
 
 const bot = new Telegraf(process.env.TICKET);
 
@@ -19,11 +20,15 @@ bot.use(Telegraf.log());
 bot.on("message", onMessage.bind(this));
 
 bot.action("agree", (ctx) => {
-    onAction(ctx, true)
+    onAction(ctx, lastAgreeMessageId);
 });
 
 bot.action("refuse", (ctx) => {
-    onAction(ctx, false)
+    onAction(ctx, lastRefuseMessageId);
+});
+
+bot.action("ignore", (ctx) => {
+    onAction(ctx, lastIgnoreMessageId);
 });
 
 async function onMessage(ctx) {
@@ -90,6 +95,15 @@ async function onMessage(ctx) {
                     }
                 );
                 break
+            case constants.IGNORE_TOPIC:
+                await ctx.telegram.sendMessage(
+                    process.env.postBox,
+                    MESSAGE_PATTERN,
+                    {
+                        message_thread_id: lastIgnoreMessageId
+                    }
+                );
+                break
             default:
                 break
         }
@@ -100,10 +114,9 @@ async function onMessage(ctx) {
 
 async function setButtons(ctx) {
     await ctx.reply(dialog.askForChoice, Markup.inlineKeyboard([
-        [
-            Markup.button.callback(dialog.agree, "agree"),
-            Markup.button.callback(dialog.refuse, "refuse")
-        ]
+        [Markup.button.callback(dialog.agree, "agree")],
+        [Markup.button.callback(dialog.refuse, "refuse")],
+        [Markup.button.callback(dialog.ignore, "ignore")],
     ]));
 }
 
@@ -111,9 +124,9 @@ async function onAction(ctx, parameter) {
     const MESSAGE_PATTERN = await defineUserData(ctx);
     await ctx.telegram.sendMessage(
         process.env.postBox,
-        MESSAGE_PATTERN + (parameter ? "AGREE" : "REJECT"),
+        MESSAGE_PATTERN,
         {
-            message_thread_id: parameter ? lastAgreeMessageId : lastRefuseMessageId
+            message_thread_id: parameter,
         }
     );
 
