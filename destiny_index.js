@@ -16,7 +16,7 @@ const answersToChatIds = [
 ]
 const lastAgreeMessageId = 2;
 const lastRefuseMessageId = 4;
-const lastIgnoreMessageId = 0;
+const lastIgnoreMessageId = 99;
 const lastStartButtonMessageId = 6;
 
 const bot = new Telegraf(process.env.TICKET);
