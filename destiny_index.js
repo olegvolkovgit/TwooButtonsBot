@@ -48,8 +48,8 @@ async function onMessage(ctx) {
 async function setPoll(ctx) {
     await ctx.replyWithQuiz(dialog.askForChoice,
         [answers.agree, answers.refuse, answers.ignore],
-        { correct_option_id: 0, is_anonymous: false }
-    )
+        { is_anonymous: false }
+    );
 }
 
 async function onPollAnswer(ctx) {
