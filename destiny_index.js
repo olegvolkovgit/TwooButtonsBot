@@ -46,9 +46,9 @@ async function onMessage(ctx) {
 }
 
 async function setPoll(ctx) {
-    await ctx.replyWithQuiz(dialog.askForChoice,
+    await ctx.replyWithPoll(dialog.askForChoice,
         [answers.agree, answers.refuse, answers.ignore],
-        { correct_option_id: 0, is_anonymous: false }
+        { open_period: 600, is_anonymous: false }
     );
 }
 
