@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Telegraf } from 'telegraf';
+import { Markup, Telegraf } from 'telegraf';
 import answers, { default as dialog } from './answers.js';
 import constants from './constants.js';
 
@@ -25,7 +25,9 @@ bot.use(Telegraf.log());
 
 bot.on("message", onMessage.bind(this));
 
-bot.on('poll_answer', onPollAnswer);
+bot.action("agree", onAgree.bind(this));
+bot.action("refuse", onRefuse.bind(this))
+bot.action("ignore", onIgnore.bind(this));
 
 async function onMessage(ctx) {
     let message = ctx?.message?.contact || ctx?.message?.text || ctx?.update?.message?.text || ctx?.message?.reply_to_message?.forum_topic_created?.name;
@@ -42,27 +44,70 @@ async function onMessage(ctx) {
         }
     }
 
-    await setPoll(ctx);
+    await setButtons(ctx);
 }
 
-async function setPoll(ctx) {
-    await ctx.replyWithPoll(dialog.askForChoice,
-        [answers.agree, answers.refuse, answers.ignore],
-        { open_period: 600, is_anonymous: false }
-    );
+async function setButtons(ctx) {
+    const KEY_BOARD = Markup.inlineKeyboard([
+        [Markup.button.callback(answers.agree, "agree")],
+        [Markup.button.callback(answers.refuse, "refuse")],
+        [Markup.button.callback(answers.ignore, "ignore")],
+    ]);
+
+    await ctx.replyWithHTML(dialog.askForChoice, KEY_BOARD);
+
+    // await ctx.replyWithPoll(dialog.askForChoice,
+    //     [answers.agree, answers.refuse, answers.ignore],
+    //     { open_period: 600, is_anonymous: false }
+    // );
 }
 
-async function onPollAnswer(ctx) {
+async function onAgree(ctx) {
     const MESSAGE_PATTERN = await defineUserData(ctx);
     await ctx.telegram.sendMessage(
         process.env.postBox,
         MESSAGE_PATTERN,
         {
-            message_thread_id: answersToChatIds[ctx.update.poll_answer.option_ids[0]],
+            message_thread_id: answersToChatIds[0],
         }
     );
-    await ctx.telegram.sendMessage(ctx?.update?.poll_answer?.user?.id, dialog.response);
+    await ctx.reply(dialog.response);
 }
+
+async function onRefuse(ctx) {
+    const MESSAGE_PATTERN = await defineUserData(ctx);
+    await ctx.telegram.sendMessage(
+        process.env.postBox,
+        MESSAGE_PATTERN,
+        {
+            message_thread_id: answersToChatIds[1],
+        }
+    );
+    await ctx.reply(dialog.response);
+}
+
+async function onIgnore(ctx) {
+    const MESSAGE_PATTERN = await defineUserData(ctx);
+    await ctx.telegram.sendMessage(
+        process.env.postBox,
+        MESSAGE_PATTERN,
+        {
+            message_thread_id: answersToChatIds[2],
+        }
+    );
+    await ctx.reply(dialog.response);
+}
+// async function onButton(ctx) {
+//     const MESSAGE_PATTERN = await defineUserData(ctx);
+//     await ctx.telegram.sendMessage(
+//         process.env.postBox,
+//         MESSAGE_PATTERN,
+//         {
+//             message_thread_id: answersToChatIds[ctx.update.poll_answer.option_ids[0]],
+//         }
+//     );
+//     await ctx.telegram.sendMessage(ctx?.update?.poll_answer?.user?.id, dialog.response);
+// }
 
 async function defineUserData(ctx) {
     messageData = await getUserName(ctx);
